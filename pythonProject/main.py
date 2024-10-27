@@ -1,25 +1,27 @@
-﻿from grid import Grid
-from settings import Settings
+﻿from grid import GridScreen
+from pythonProject.colour_blind_test import ColorblindTest
+from pythonProject.main_menu import MainMenu
+from pythonProject.menu_manager import menu_manager
+from pythonProject.options_menu import OptionsMenu
+import tkinter as tk
 
-# Load settings
-settings = Settings()
-amount_of_distractors = settings.get_distractor_amount()
-amount_of_horizontal_cells = settings.get_grid_width()
-amount_of_vertical_cells = settings.get_grid_height()
-amount_of_rounds = settings.get_number_of_rounds()
-current_seed = settings.get_default_seed()
+root = tk.Tk()
+screen_manager = menu_manager(root)
+menu1 = MainMenu(root, screen_manager)
+screen_manager.add_screen("MainMenu", menu1)
 
-grid = Grid(amount_of_horizontal_cells,
-            amount_of_vertical_cells,
-            amount_of_distractors,
-            amount_of_rounds,
-            current_seed)
+colour_blind_menu = ColorblindTest(root, screen_manager)
+screen_manager.add_screen("ColorblindTest", colour_blind_menu)
 
-grid.generate_grid()
-grid.new_round()
+experiment_screen = GridScreen(root, screen_manager)
+screen_manager.add_screen("Experiment", experiment_screen)
 
-if __name__ == "__main__":
-    if not grid.finished_all_rounds:
-        grid.run()
-    else:
-        exit()
+options_screen = OptionsMenu(root, screen_manager)
+screen_manager.add_screen("Options", options_screen)
+
+screen_manager.show_screen("MainMenu")
+
+root.mainloop()
+
+
+

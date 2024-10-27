@@ -3,38 +3,56 @@ import tkinter as tk
 import time
 from score_tracker import ScoreTracker
 from target import Target
+from settings import Settings
 
-class Grid:
-    def __init__(self, width,
-                 height,
-                 distractor_amount,
-                 total_rounds,
-                 seed_value=None):
+class GridScreen(tk.Frame):
+    def __init__(self, master, screen_manager):
+        super().__init__(master)
+
+        self.canvas = None
+        self.current_seed = None
+        self.score_tracker = None
+        self.total_rounds = None
+        self.current_round = 0
+        self.distractor_amount = None
+        self.grid_height = None
+        self.grid_width = None
+        self.finished_all_rounds = False
         self.start_time = None
-        self.grid_width = width
-        self.grid_height = height
         self.target_grid = []
-        self.distractor_amount = distractor_amount
-        self.total_rounds = total_rounds
+        self.screen_manager = screen_manager
+        self.should_draw = False
+        self.load_settings()
+        self.canvas = tk.Canvas(self, width=self.grid_width * 100, height=self.grid_height * 100)
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+
+        
+            
+    def start(self):
+        """Start the experiment by resetting the round and initiating the first round."""
+        self.load_settings()
+        self.should_draw = True
+        self.current_round = 0  # Reset to the first round
+        self.generate_grid()
+        self.new_round()  # Start the first round
+        self.update()
+        
+    def load_settings(self):
+        settings = Settings()
+        settings.load_settings()
+        self.grid_width = settings.get_grid_width()
+        self.grid_height = settings.get_grid_height()
+        
+        self.distractor_amount = settings.get_distractor_amount()
+        self.total_rounds = settings.get_number_of_rounds()
         self.current_round = 0
         self.score_tracker = ScoreTracker()
-        self.finished_all_rounds = False
-
-        self.root = tk.Tk()
-        self.root.attributes("-fullscreen", True)
-        self.canvas = tk.Canvas(self.root, width=width * 100, height=height * 100)
-        self.canvas.pack(fill=tk.BOTH, expand=True)  # Allow the canvas to expand with window resize
-        self.root.bind("<Configure>", self.on_resize)  # Bind window resize event
-
-        self.current_seed = seed_value
-
-        #either used a premade seed or generate a current seed based on current time in miliseconds
-        if seed_value is not None:
+        self.current_seed = settings.get_default_seed()
+        if self.current_seed is not None:
             random.seed(self.current_seed)
         else:
-            current_seed = (time.time() * 1000)
-
-        self.generate_grid()  # Ensure the grid is generated before any drawing happens
+            self.current_seed = int(time.time() * 1000)
+        
 
     def generate_grid(self):
         """Create the target grid."""
@@ -51,6 +69,8 @@ class Grid:
         self.score_tracker.export_scores_csv()
         self.finished_all_rounds = True
         self.reset_all_targets()
+        self.should_draw = False
+        self.screen_manager.show_screen("MainMenu")
 
     def new_round(self):
         """Start a new round, reset all targets, and set new target/distractors."""
@@ -59,7 +79,6 @@ class Grid:
             return
 
         self.current_round += 1
-
         self.reset_all_targets()
         self.start_time = time.time()
 
@@ -73,6 +92,9 @@ class Grid:
             else:
                 item.set_as_target()
 
+        # Draw the grid after setting targets
+        self.draw()
+
     def draw(self):
         """Draw the targets on the canvas, scaling to the window size while maintaining aspect ratio."""
         self.canvas.delete("all")  # Clear the canvas
@@ -80,35 +102,31 @@ class Grid:
         # Get the current window size
         canvas_width = self.canvas.winfo_width()
         canvas_height = self.canvas.winfo_height()
-
-        # Calculate the aspect ratio of the grid
         grid_aspect_ratio = self.grid_width / self.grid_height
 
-        # Find the limiting dimension to maintain aspect ratio
+        # Calculate cell size and offsets to maintain aspect ratio
         if canvas_width / canvas_height > grid_aspect_ratio:
-            # Height is the limiting factor, so scale based on height
             cell_size = canvas_height / self.grid_height
-            offset_x = (canvas_width - cell_size * self.grid_width) / 2  # Center horizontally
+            offset_x = (canvas_width - cell_size * self.grid_width) / 2
             offset_y = 0
         else:
-            # Width is the limiting factor, so scale based on width
             cell_size = canvas_width / self.grid_width
-            offset_y = (canvas_height - cell_size * self.grid_height) / 2  # Center vertically
+            offset_y = (canvas_height - cell_size * self.grid_height) / 2
             offset_x = 0
 
+        # Draw each target based on its type
         for row in self.target_grid:
             for target in row:
                 if target.enabled():
-                    # Scale the position and size based on the window size, maintaining aspect ratio
                     x1 = target.x * cell_size + offset_x
                     y1 = target.y * cell_size + offset_y
                     x2 = x1 + cell_size
                     y2 = y1 + cell_size
 
-                    # Draw oval (circle)
+                    # Draw the target or distractor
                     oval_id = self.canvas.create_oval(x1, y1, x2, y2, fill=target.get_colour())
 
-                    # Bind click events based on the type of target
+                    # Bind click events based on target type
                     if target.target:
                         self.canvas.tag_bind(oval_id, "<Button-1>", lambda event, t=target: self.on_target_click(event, t))
                     else:
@@ -124,19 +142,16 @@ class Grid:
 
     def on_incorrect_click(self, event, target):
         """Handle incorrect target click."""
-        print(f"Target at ({target.x}, {target.y}) incorrectly clicked!")
+        print(f"Incorrect target at ({target.x}, {target.y}) clicked!")
         self.score_tracker.increase_clicks()
 
     def on_resize(self, event):
         """Redraw targets when window is resized."""
         self.draw()  # Redraw the targets to fit the new window size
 
+    
+
     def update(self):
         """Continuously update the canvas."""
         self.draw()  # Ensure the targets are drawn
-        self.root.after(500, self.update)  # Schedule the update method to be called every 500ms (0.5 seconds)
-
-    def run(self):
-        """Run the Tkinter loop."""
-        self.update()  # Start the update loop
-        self.root.mainloop()
+        self.after(500, self.update)
