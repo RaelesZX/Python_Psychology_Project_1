@@ -8,32 +8,42 @@ class OptionsMenu(tk.Frame):
         super().__init__(master)
         self.screen_manager = screen_manager
 
+        # logo image at top of screen
         self.logo_image = PhotoImage(file="logo.png")  # Replace with actual logo path
         logo_label = tk.Label(self, image=self.logo_image)
-        logo_label.pack(pady=20)
+        logo_label.pack(pady=0)
 
+        # load settings from ini file before the screen is drawn
         self.settings = Settings()
 
         container = tk.Frame(self)
         container.pack(pady=20, padx=20)
 
+        # draw all options and populate with data from settings
         self.distractor_input = self.create_setting_input(container, "Amount of Distractors:",
                                                           self.settings.get_distractor_amount())
+
         self.horizontal_cells_input = self.create_setting_input(container, "Amount of Horizontal Cells:",
                                                                 self.settings.get_grid_width())
+
         self.vertical_cells_input = self.create_setting_input(container, "Amount of Vertical Cells:",
                                                               self.settings.get_grid_height())
+
         self.rounds_input = self.create_setting_input(container, "Amount of Rounds:",
                                                       self.settings.get_number_of_rounds())
+
         self.seed_input = self.create_setting_input(container, "Current Seed:", self.settings.get_default_seed())
 
-        # Create text boxes for colors
         self.distractor_colour_input = self.create_setting_input(container, "Distractor Colour:",
                                                                  self.settings.get_distractor_colour())
+
         self.target_colour_input = self.create_setting_input(container, "Target Colour:",
                                                              self.settings.get_target_colour())
 
-        self.default_seed_var = tk.BooleanVar(value=self.settings.get_use_default_seed())
+        self.save_file_input = self.create_setting_input(container, "Save File:",
+                                                             self.settings.get_save_file_name())
+
+        self.default_seed_var = tk.BooleanVar(value=self.settings.get_always_use_default_seed())
         self.default_seed_checkbox = tk.Checkbutton(
             container, text="Always use default seed", variable=self.default_seed_var, font=("Helvetica", 14)
         )
@@ -59,6 +69,8 @@ class OptionsMenu(tk.Frame):
         self.place(relx=0.5, rely=0.5, anchor="center")
 
     def create_setting_input(self, container, label_text, default_value):
+        # helper method to create a label and text box pairing for settings
+
         frame = tk.Frame(container)
         frame.pack(fill="x", pady=5)
 
@@ -72,7 +84,6 @@ class OptionsMenu(tk.Frame):
         return input_box
 
     def save_settings(self):
-        """Save the settings when the Save button is clicked."""
         # Retrieve values from each input box and checkboxes, then update the settings
         new_distractor_amount = int(self.distractor_input.get())
         new_horizontal_cells = int(self.horizontal_cells_input.get())
@@ -81,6 +92,7 @@ class OptionsMenu(tk.Frame):
         new_seed = int(self.seed_input.get())
         new_distractor_colour = self.distractor_colour_input.get()
         new_target_colour = self.target_colour_input.get()
+        new_save_file = self.save_file_input.get()
 
         # Checkbox values
         always_use_default_seed = self.default_seed_var.get()
@@ -96,11 +108,12 @@ class OptionsMenu(tk.Frame):
         self.settings.set_target_colour(new_target_colour)
         self.settings.set_always_use_default_seed(always_use_default_seed)
         self.settings.set_skip_eye_test(skip_eye_test)
+        self.settings.set_save_file_name(new_save_file)
 
+        # save new settings to ini
         self.settings.save_settings()
 
         print("Settings saved successfully")
 
     def start(self):
-        """Start method for the settings menu, if needed."""
         print("OptionsMenu displayed.")

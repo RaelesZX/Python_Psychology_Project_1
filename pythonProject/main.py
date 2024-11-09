@@ -5,6 +5,7 @@ from pythonProject.menu_manager import menu_manager
 from pythonProject.options_menu import OptionsMenu
 import tkinter as tk
 
+# create instances of menu system and each menu
 root = tk.Tk()
 screen_manager = menu_manager(root)
 menu1 = MainMenu(root, screen_manager)
@@ -19,6 +20,7 @@ screen_manager.add_screen("Experiment", experiment_screen)
 options_screen = OptionsMenu(root, screen_manager)
 screen_manager.add_screen("Options", options_screen)
 
+# show the main menu as default
 screen_manager.show_screen("MainMenu")
 
 root.mainloop()

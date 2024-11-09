@@ -2,13 +2,14 @@
 import tkinter as tk
 import time
 from score_tracker import ScoreTracker
-from target import Target
+from circle import Circle
 from settings import Settings
+import settings
 
+# Menu screen to perform the main experiment
 class GridScreen(tk.Frame):
     def __init__(self, master, screen_manager):
         super().__init__(master)
-
         self.canvas = None
         self.current_seed = None
         self.score_tracker = None
@@ -22,50 +23,59 @@ class GridScreen(tk.Frame):
         self.target_grid = []
         self.screen_manager = screen_manager
         self.should_draw = False
+        self.target_colour = "red"
+        self.distractor_colour = "blue"
         self.load_settings()
         self.canvas = tk.Canvas(self, width=self.grid_width * 100, height=self.grid_height * 100)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
-        
             
     def start(self):
-        """Start the experiment by resetting the round and initiating the first round."""
+        # start the experiment by resetting and initiating the first round
         self.load_settings()
         self.should_draw = True
-        self.current_round = 0  # Reset to the first round
+        self.current_round = 0
         self.generate_grid()
-        self.new_round()  # Start the first round
+        self.new_round()
         self.update()
         
     def load_settings(self):
+        # Load latest settings from ini file (this is done every first round to ensure the settings are up to date)
         settings = Settings()
         settings.load_settings()
         self.grid_width = settings.get_grid_width()
         self.grid_height = settings.get_grid_height()
-        
         self.distractor_amount = settings.get_distractor_amount()
         self.total_rounds = settings.get_number_of_rounds()
         self.current_round = 0
-        self.score_tracker = ScoreTracker()
+        self.score_tracker = ScoreTracker(self.current_seed)
         self.current_seed = settings.get_default_seed()
-        if self.current_seed is not None:
+
+        if not settings.COLOUR_BLIND_MODE:
+
+        self.target_colour = settings.get_target_colour()
+        self.distractor_colour = settings.get_distractor_colour()
+
+        # if a seed has been provided then use it, else generate a random one based off of the current time
+        if self.current_seed is not None and settings.get_always_use_default_seed():
             random.seed(self.current_seed)
         else:
             self.current_seed = int(time.time() * 1000)
         
 
     def generate_grid(self):
-        """Create the target grid."""
-        self.target_grid = [[Target(j, i) for j in range(self.grid_width)] for i in range(self.grid_height)]
+        # create a grid in a two-dimensional array using the specified width and height
+        self.target_grid = [[Circle(j, i, self.target_colour, self.distractor_colour) for j in range(self.grid_width)] for i in range(self.grid_height)]
 
     def reset_all_targets(self):
-        """Reset the state of all targets."""
+        # reset the state of all targets in the grid, setting if distractor and if target to false
         for row in self.target_grid:
             for target in row:
                 target.reset()
 
     def end_all_rounds(self):
-        """End all rounds and export the score."""
+        # save scores to csv file, reset targets, ensure the window
+        # won't update in the background and then switch back to the main menu screen
         self.score_tracker.export_scores_csv()
         self.finished_all_rounds = True
         self.reset_all_targets()
@@ -73,19 +83,24 @@ class GridScreen(tk.Frame):
         self.screen_manager.show_screen("MainMenu")
 
     def new_round(self):
-        """Start a new round, reset all targets, and set new target/distractors."""
+        # if last round then stop here and end process
         if self.current_round == self.total_rounds:
             self.end_all_rounds()
             return
 
+        # increase current round
         self.current_round += 1
         self.reset_all_targets()
         self.start_time = time.time()
 
+        #select a sample of distractors from the grid
         flat_grid = [item for sublist in self.target_grid for item in sublist]
         selected_items = random.sample(flat_grid, self.distractor_amount + 1)
+
+        # select a single target from the grid
         target_item = random.choice(selected_items)
 
+        # activate distractor and targets
         for item in selected_items:
             if item != target_item:
                 item.set_as_distractor()
@@ -96,12 +111,14 @@ class GridScreen(tk.Frame):
         self.draw()
 
     def draw(self):
-        """Draw the targets on the canvas, scaling to the window size while maintaining aspect ratio."""
+        # Draw the targets on the canvas, scaling to the window size while maintaining aspect ratio
         self.canvas.delete("all")  # Clear the canvas
 
         # Get the current window size
         canvas_width = self.canvas.winfo_width()
         canvas_height = self.canvas.winfo_height()
+
+        # calculate aspect ratio
         grid_aspect_ratio = self.grid_width / self.grid_height
 
         # Calculate cell size and offsets to maintain aspect ratio
@@ -114,7 +131,7 @@ class GridScreen(tk.Frame):
             offset_y = (canvas_height - cell_size * self.grid_height) / 2
             offset_x = 0
 
-        # Draw each target based on its type
+        # Draw each target based on its type (distractor / target)
         for row in self.target_grid:
             for target in row:
                 if target.enabled():
@@ -133,7 +150,7 @@ class GridScreen(tk.Frame):
                         self.canvas.tag_bind(oval_id, "<Button-1>", lambda event, t=target: self.on_incorrect_click(event, t))
 
     def on_target_click(self, event, target):
-        """Handle correct target click."""
+        # if a target is clicked, increase clicks by one, save scores and start a new round
         print(f"Target at ({target.x}, {target.y}) clicked!")
         elapsed_time = time.time() - self.start_time
         self.score_tracker.increase_clicks()
@@ -141,17 +158,17 @@ class GridScreen(tk.Frame):
         self.new_round()
 
     def on_incorrect_click(self, event, target):
-        """Handle incorrect target click."""
+        # if a distractor is clicked, increase the current clicks by one
         print(f"Incorrect target at ({target.x}, {target.y}) clicked!")
         self.score_tracker.increase_clicks()
 
     def on_resize(self, event):
-        """Redraw targets when window is resized."""
-        self.draw()  # Redraw the targets to fit the new window size
+        # trigger draw() if the screen is resized
+        self.draw()
 
     
 
     def update(self):
-        """Continuously update the canvas."""
-        self.draw()  # Ensure the targets are drawn
+        # continuously update canvas every 500 milliseconds
+        self.draw()
         self.after(500, self.update)

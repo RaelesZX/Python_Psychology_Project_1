@@ -2,6 +2,7 @@
 import os
 
 class Settings:
+    COLOUR_BLIND_MODE = False
     def __init__(self):
         self.current_settings = None
         self.name_of_file = 'settings.ini'
@@ -9,6 +10,7 @@ class Settings:
         self.load_settings()
 
     def get_default_settings(self):
+        # The default format of the ini files which is used if no ini file exists
         return {
             'grid': {
                 'height': '10',
@@ -21,12 +23,13 @@ class Settings:
             'general': {
                 'default_seed': '12345',
                 'use_default_seed': 'True',
-                'skip_eye_test': 'False'
+                'skip_eye_test': 'False',
+                'save_file_name': 'experiment_output_1'
             }
         }
 
     def create_default_settings_file(self):
-        """Create a default settings file if it doesn't exist."""
+        # check if ini file exists, if it doesn't then create the file and write in the default settings
         if not os.path.isfile(self.name_of_file):
             self.current_settings = configparser.ConfigParser()
             self.current_settings.read_dict(self.get_default_settings())
@@ -35,13 +38,13 @@ class Settings:
             print(f"Default settings file created: {self.name_of_file}")
 
     def save_settings(self):
-        """Save the current settings to the file."""
+        # override the current ini file with the new settings
         with open(self.name_of_file, 'w') as configfile:
             self.current_settings.write(configfile)
         print("Settings saved to file.")
 
     def load_settings(self):
-        """Load settings from the file or use default settings."""
+        # Load settings from the file or use default settings
         self.current_settings = configparser.ConfigParser()
         if os.path.exists(self.name_of_file):
             self.current_settings.read(self.name_of_file)
@@ -71,13 +74,16 @@ class Settings:
     def get_distractor_colour(self):
         return self.current_settings.get('grid', 'distractor_colour')
 
-    def get_use_default_seed(self):
+    def get_always_use_default_seed(self):
         return self.current_settings.getboolean('general', 'use_default_seed')
 
     def get_skip_eye_test(self):
         return self.current_settings.getboolean('general', 'skip_eye_test')
 
-    # Mutator methods to set specific settings
+    def get_save_file_name(self):
+        return self.current_settings.get('general', 'save_file_name') + ".csv"
+
+    # Methods to set specific settings
     def set_distractor_amount(self, new_distractor_amount):
         self.current_settings.set('grid', 'distractors', str(new_distractor_amount))
         self.save_settings()
@@ -113,3 +119,6 @@ class Settings:
     def set_skip_eye_test(self, skip_eye_test):
         self.current_settings.set('general', 'skip_eye_test', str(skip_eye_test))
         self.save_settings()
+
+    def set_save_file_name(self, save_file_name):
+        self.current_settings.set('general', 'save_file_name', save_file_name)

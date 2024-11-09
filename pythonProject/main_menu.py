@@ -1,5 +1,6 @@
 ﻿import tkinter as tk
-from ctypes import c_wchar
+
+from pythonProject.settings import Settings
 
 
 class MainMenu(tk.Frame):
@@ -14,14 +15,14 @@ class MainMenu(tk.Frame):
         print("Show main menu")
 
     def create_widgets(self):
-
+        # Draw the logo at the top of the window
         self.logo_image = tk.PhotoImage(file="logo.png")
         logo_label = tk.Label(self, image=self.logo_image)
         logo_label.pack(pady=20)
         
         # Menu buttons
         button_new_experiment = tk.Button(self, text="New Experiment", font=("Helvetica", 16),
-                                          command=lambda: self.screen_manager.show_screen("ColorblindTest"))
+                                          command=lambda: self.start_experiment())
         button_new_experiment.pack(pady=10)
 
         button_options = tk.Button(self, text="Options", font=("Helvetica", 16),
@@ -31,3 +32,13 @@ class MainMenu(tk.Frame):
         button_quit = tk.Button(self, text="Quit", font=("Helvetica", 16),
                                 command=self.screen_manager.exit_app)
         button_quit.pack(pady=10)
+
+    def start_experiment(self):
+        settings = Settings()
+        settings.load_settings()
+
+        if not settings.get_skip_eye_test():
+            self.screen_manager.show_screen("ColorblindTest")
+        else:
+            settings.COLOUR_BLIND_MODE = False
+            self.screen_manager.show_screen("Experiment")
