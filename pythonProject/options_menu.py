@@ -8,11 +8,6 @@ class OptionsMenu(tk.Frame):
         super().__init__(master)
         self.screen_manager = screen_manager
 
-        # logo image at top of screen
-        self.logo_image = PhotoImage(file="logo.png")  # Replace with actual logo path
-        logo_label = tk.Label(self, image=self.logo_image)
-        logo_label.pack(pady=0)
-
         # load settings from ini file before the screen is drawn
         self.settings = Settings()
 

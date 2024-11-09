@@ -80,7 +80,7 @@ class Settings:
         return self.current_settings.getboolean('general', 'use_default_seed')
 
     def get_save_file_name(self):
-        return self.current_settings.get('general', 'save_file_name') + ".csv"
+        return self.current_settings.get('general', 'save_file_name')
 
     # Methods to set specific settings
     def set_distractor_amount(self, new_distractor_amount):

@@ -15,7 +15,8 @@ class ScoreTracker:
         self.seed = seed
         settings = Settings()
         settings.load_settings()
-        self.save_file_name = settings.get_save_file_name()
+        self.save_file_name = settings.get_save_file_name() + ".csv"
+        self.background_colour = settings.get_background_colour()
 
     def increase_clicks(self):
         # clicks will only ever increase by one at a time
@@ -35,12 +36,12 @@ class ScoreTracker:
             writer = csv.writer(file)
 
             if mode == 'w':
-                writer.writerow(['User ID', 'Time', 'Clicks', 'Seed'])
+                writer.writerow(['User ID', 'Time', 'Clicks', 'Seed', 'background_colour'])
 
             user_id = str(uuid.uuid4())  # Generate a GUID as a string - always unique
 
             for score in self.scores:
-                writer.writerow([user_id, score.Time, score.Clicks, self.seed])
+                writer.writerow([user_id, score.Time, score.Clicks, self.seed, self.background_colour])
 
     def reset(self):
         # reset score arrays for a new experiment
