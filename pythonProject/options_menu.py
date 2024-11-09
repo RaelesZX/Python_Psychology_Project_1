@@ -40,6 +40,9 @@ class OptionsMenu(tk.Frame):
         self.target_colour_input = self.create_setting_input(container, "Target Colour:",
                                                              self.settings.get_target_colour())
 
+        self.background_colour_input = self.create_setting_input(container, "Background Colour:",
+                                                             self.settings.get_background_colour())
+
         self.save_file_input = self.create_setting_input(container, "Save File:",
                                                              self.settings.get_save_file_name())
 
@@ -48,12 +51,6 @@ class OptionsMenu(tk.Frame):
             container, text="Always use default seed", variable=self.default_seed_var, font=("Helvetica", 14)
         )
         self.default_seed_checkbox.pack(anchor="w", pady=5)
-
-        self.skip_eye_test_var = tk.BooleanVar(value=self.settings.get_skip_eye_test())
-        self.skip_eye_test_checkbox = tk.Checkbutton(
-            container, text="Skip eye test", variable=self.skip_eye_test_var, font=("Helvetica", 14)
-        )
-        self.skip_eye_test_checkbox.pack(anchor="w", pady=5)
 
         # Add save and back buttons at the bottom
         button_frame = tk.Frame(self)
@@ -93,10 +90,10 @@ class OptionsMenu(tk.Frame):
         new_distractor_colour = self.distractor_colour_input.get()
         new_target_colour = self.target_colour_input.get()
         new_save_file = self.save_file_input.get()
+        new_background_colour = self.background_colour_input.get()
 
         # Checkbox values
         always_use_default_seed = self.default_seed_var.get()
-        skip_eye_test = self.skip_eye_test_var.get()
 
         # Update settings in the Settings instance
         self.settings.set_distractor_amount(new_distractor_amount)
@@ -107,8 +104,8 @@ class OptionsMenu(tk.Frame):
         self.settings.set_distractor_colour(new_distractor_colour)
         self.settings.set_target_colour(new_target_colour)
         self.settings.set_always_use_default_seed(always_use_default_seed)
-        self.settings.set_skip_eye_test(skip_eye_test)
         self.settings.set_save_file_name(new_save_file)
+        self.settings.set_background_colour(new_background_colour)
 
         # save new settings to ini
         self.settings.save_settings()

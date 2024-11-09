@@ -2,7 +2,6 @@
 import os
 
 class Settings:
-    COLOUR_BLIND_MODE = False
     def __init__(self):
         self.current_settings = None
         self.name_of_file = 'settings.ini'
@@ -18,12 +17,12 @@ class Settings:
                 'distractors': '4',
                 'number_of_rounds': '5',
                 'target_colour': 'red',
-                'distractor_colour': 'blue'
+                'distractor_colour': 'blue',
+                'background_colour': 'white'
             },
             'general': {
                 'default_seed': '12345',
                 'use_default_seed': 'True',
-                'skip_eye_test': 'False',
                 'save_file_name': 'experiment_output_1'
             }
         }
@@ -74,11 +73,11 @@ class Settings:
     def get_distractor_colour(self):
         return self.current_settings.get('grid', 'distractor_colour')
 
+    def get_background_colour(self):
+        return self.current_settings.get('grid', 'background_colour')
+
     def get_always_use_default_seed(self):
         return self.current_settings.getboolean('general', 'use_default_seed')
-
-    def get_skip_eye_test(self):
-        return self.current_settings.getboolean('general', 'skip_eye_test')
 
     def get_save_file_name(self):
         return self.current_settings.get('general', 'save_file_name') + ".csv"
@@ -112,12 +111,12 @@ class Settings:
         self.current_settings.set('grid', 'target_colour', new_target_colour)
         self.save_settings()
 
-    def set_always_use_default_seed(self, always_use_default_seed):
-        self.current_settings.set('general', 'use_default_seed', str(always_use_default_seed))
+    def set_background_colour(self, new_target_colour):
+        self.current_settings.set('grid', 'background_colour', new_target_colour)
         self.save_settings()
 
-    def set_skip_eye_test(self, skip_eye_test):
-        self.current_settings.set('general', 'skip_eye_test', str(skip_eye_test))
+    def set_always_use_default_seed(self, always_use_default_seed):
+        self.current_settings.set('general', 'use_default_seed', str(always_use_default_seed))
         self.save_settings()
 
     def set_save_file_name(self, save_file_name):

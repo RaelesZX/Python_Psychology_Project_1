@@ -25,10 +25,10 @@ class GridScreen(tk.Frame):
         self.should_draw = False
         self.target_colour = "red"
         self.distractor_colour = "blue"
+
         self.load_settings()
         self.canvas = tk.Canvas(self, width=self.grid_width * 100, height=self.grid_height * 100)
         self.canvas.pack(fill=tk.BOTH, expand=True)
-
             
     def start(self):
         # start the experiment by resetting and initiating the first round
@@ -38,6 +38,7 @@ class GridScreen(tk.Frame):
         self.generate_grid()
         self.new_round()
         self.update()
+        self.canvas.config(bg=self.background_colour)
         
     def load_settings(self):
         # Load latest settings from ini file (this is done every first round to ensure the settings are up to date)
@@ -50,11 +51,11 @@ class GridScreen(tk.Frame):
         self.current_round = 0
         self.score_tracker = ScoreTracker(self.current_seed)
         self.current_seed = settings.get_default_seed()
-
-        if not settings.COLOUR_BLIND_MODE:
-
         self.target_colour = settings.get_target_colour()
         self.distractor_colour = settings.get_distractor_colour()
+        self.background_colour = settings.get_background_colour()
+
+
 
         # if a seed has been provided then use it, else generate a random one based off of the current time
         if self.current_seed is not None and settings.get_always_use_default_seed():

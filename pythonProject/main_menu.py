@@ -22,7 +22,7 @@ class MainMenu(tk.Frame):
         
         # Menu buttons
         button_new_experiment = tk.Button(self, text="New Experiment", font=("Helvetica", 16),
-                                          command=lambda: self.start_experiment())
+                                          command=lambda: self.screen_manager.show_screen("Experiment"))
         button_new_experiment.pack(pady=10)
 
         button_options = tk.Button(self, text="Options", font=("Helvetica", 16),
@@ -32,13 +32,3 @@ class MainMenu(tk.Frame):
         button_quit = tk.Button(self, text="Quit", font=("Helvetica", 16),
                                 command=self.screen_manager.exit_app)
         button_quit.pack(pady=10)
-
-    def start_experiment(self):
-        settings = Settings()
-        settings.load_settings()
-
-        if not settings.get_skip_eye_test():
-            self.screen_manager.show_screen("ColorblindTest")
-        else:
-            settings.COLOUR_BLIND_MODE = False
-            self.screen_manager.show_screen("Experiment")
