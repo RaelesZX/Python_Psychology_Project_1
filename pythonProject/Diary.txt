@@ -1,0 +1,39 @@
+﻿1. Proof of Concept – Drawing Circles on the Screen
+My first step was to establish a proof of concept by researching libraries to handle graphical elements and UI components. After exploring several options, including PyGame and Tkinter, I chose Tkinter due to its robust support for GUI elements, which suited my experiment setup well.
+
+2. Generating a Flexible Grid System
+I structured the core display as a flexible two-dimensional [x][y] grid, allowing it to scale to any width and height. Each grid cell corresponds to a possible circle instance, generated at the start of each experiment. This setup enables efficient random selection and activation of circles as either targets or distractors without generating them anew for each round. The circles are configured with properties such as position, type (target or distractor), and color for each state. Circles that are neither targets nor distractors remain hidden for the round.
+
+3. Random Sampling for Distractors and Targets
+To enable randomized selection of distractors and targets, I utilized Python’s random library. Leveraging the seeding mechanic allowed for session replay, meaning specific scenarios could be repeated by setting an identical seed. Additionally, I implemented an update method to trigger every 500 milliseconds, refreshing the display at regular intervals.
+
+4. Clickable Circles
+Making circles clickable was crucial for the experiment. Using lambda functions, I bound click events to each target circle, allowing participants to interact with the targets. This binding facilitated real-time response tracking.
+
+5. Adaptive Resizing for Different Devices
+Since the experiment could run on devices with varying screen sizes and resolutions, I adapted the grid to be responsive. Tkinter’s full-screen mode helped, but to maintain aspect ratios, I calculated cell dimensions based on the canvas’s width, height, and the device's aspect ratio. This resizing feature is also bound to an on_resize event, keeping the circles proportional across different screens.
+
+6. Score and Data Tracking
+To track each participant’s clicks and score, I developed a dedicated ScoreTracker class. This class manages counts of clicks, scores for each round, and includes a method to export data to a CSV file at the end of each session, supporting easy data collection for analysis.
+
+7. Building a Flexible GUI
+For the GUI, I needed a dynamic menu system to switch between different screens seamlessly. Tkinter’s frame feature allowed me to treat each screen as a separate frame within a single window. I implemented a menu management class that registers each screen with a unique identifier, making it easy to navigate between them using simple commands. Each menu component features start() and add_widgets() methods to handle setup and populate the UI.
+
+8. Creating Options for Experiment Customization
+The options menu introduced customization parameters, such as grid size, number of distractors and targets per round, number of rounds, and an optional seed for session consistency. It also includes options for setting custom colors for targets and toggling seed usage.
+
+9. Settings Persistence with INI Files
+To save and load settings, I initially considered JSON but shifted to INI files for readability and ease of access. The SettingsManager class handles loading and saving settings in INI format, creating a default configuration if none exists. It also manages settings persistence in memory and writes changes directly to the file, supporting seamless continuity across sessions.
+
+10. Color Blindness Considerations
+Recognizing the importance of accessibility, I initially added a color blindness check using premade images to identify participants who might need color adjustments. Participants could choose to skip this test from the options menu if desired.
+
+11. Finalizing Data Storage – Appending Scores with Unique Identifiers
+At the end of the project, I revisited the score tracking feature to ensure that each new session’s scores were appended to the file rather than overwriting existing data. I decided to use a GUID (Globally Unique Identifier) to represent each session, making every entry completely unique. Additionally, I included the recorded seed in each row to allow for exact scenario reproduction if needed. This final setup ensured that the data was both unique and complete, providing an accurate record of each experiment session.
+
+12. Customizable CSV File Naming for Different Session Sets
+To support recording multiple session sets under varying settings, I added an option to customize the CSV file name. This way, different experiment configurations and participant groups could be saved in separate files, keeping each set organized and easily identifiable. By allowing users to name the CSV file, it became straightforward to record and review data from distinct experimental setups without merging or overwriting previous data.
+
+13. Simplifying Accessibility with Background Color Selection
+After considering the user experience, I decided to remove the colorblind tests altogether. Instead, I added a straightforward option in the settings to select the background color. This allows users to choose a color that best suits their visual preferences and accessibility needs, keeping the interface simpler and more user-friendly.
+
